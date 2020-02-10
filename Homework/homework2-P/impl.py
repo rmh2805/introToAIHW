@@ -238,4 +238,4 @@ def main(n):
     print('\nExecution Time: ' + str(rrHillClimb(nums, tgt)) + 'seconds')
 
 
-main(200)
+main(100)

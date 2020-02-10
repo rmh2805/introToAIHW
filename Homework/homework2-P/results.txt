@@ -1,0 +1,9 @@
+0.5 Seconds:
+    difference: 0.375
+    result:     
+0.75 Seconds:
+    difference: 6.76801330428134e-05 
+    result:     
+1 Second:
+    difference: 0
+    result:     
