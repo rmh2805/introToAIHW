@@ -230,12 +230,19 @@ def rrHillClimb(numList, tgt):
 
 # =================================================<Main Executable>================================================== #
 def main(n):
+    global bestState
+
     nums, tgt = makeNums(n)
     print('Number Set: ', end='')
     print(nums)
     print('Target Value: ' + str(tgt))
 
-    print('\nExecution Time: ' + str(rrHillClimb(nums, tgt)) + 'seconds')
+    acc = []
+    for i in range(0, 100):
+        bestState = None
+        acc.append(rrHillClimb(nums, tgt))
+
+    print('avg time: ' + str(math.fsum(acc) / 100) + ' seconds')
 
 
 main(100)
