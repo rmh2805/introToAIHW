@@ -1,0 +1,8 @@
+Elevation time contribution:
+        Using Tobler's hiking function (probably incorrectly) to approximate percent of max pace (p) reached given
+    slope (S = dh/dx): p = e**(3.5 * abs(S + 0.05)).
+
+PIL image notes:
+    The image array (Image.load()) is accessed by [column, row], not [row, column].
+
+    Image.size is a tuple of (width, height)
