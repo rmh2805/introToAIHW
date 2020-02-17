@@ -1,5 +1,4 @@
 Elevation time contribution:
-
         Using Tobler's hiking function (probably incorrectly) to approximate pace (p) given slope (S = dh/dx) for a
     maximum speed (m): p = m * e**(3.5 * abs(S + 0.05)). Its minimum (1) is reached with a -1/20 slope, and allows for
     maximum unit speed (in our case m = 1 in order to return a percentage). Multiply distance by this value to get a

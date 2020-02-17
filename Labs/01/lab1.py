@@ -3,6 +3,7 @@ import sys
 
 from PIL import Image
 
+# ===================================================<Global State>=================================================== #
 iceColor = (0x80, 0x80, 0xFF)
 mudColor = (0x8E, 0x91, 0x0E)
 
@@ -35,11 +36,23 @@ speedMap = {'Open land': .8,
             'Mud': .5}
 
 
-# Converts a horizontal distance from pixels to meters
-def getDist(deltaX, deltaY):
-    return 10.29 * abs(deltaX) + 7.55 * abs(deltaY)
+# ===============================================<Distance Calculation>=============================================== #
+# Converts the horizontal distance from (x0, y0) to (xF, yF) in meters
+def getHDist(x0, y0, xF, yF):
+    return ((10.29 * (xF - x0)) ** 2 + (7.55 * (yF - y0)) ** 2) ** 0.5
 
 
+# Calculates the vertical distance from (x0, y0) to (xF, yF)
+def getVDist(x0, y0, xF, yF, heightArray):
+    return heightArray[yF][xF] - heightArray[y0][x0]
+
+
+# Calculates the straight line distance from (x0, y0) to (xF, yF)
+def getDist(x0, y0, xF, yF, heightArray):
+    return (getHDist(x0, y0, xF, yF) ** 2 + getVDist(x0, y0, xF, yF, heightArray) ** 2) ** .5
+
+
+# ==================================================<Image Handling>================================================== #
 def getTerrain(x, y, terrainData):
     global colorMap
     try:
@@ -48,13 +61,17 @@ def getTerrain(x, y, terrainData):
         return None
 
 
-# An implementation of Tobler's hiking function for pace
-def getVertPace(x0, y0, xF, yF, heightArray):
-    hDist = getDist(xF - x0, yF - y0)
-    vDist = heightArray[xF][yF] - heightArray[x0][y0]
-    return math.e ** (3.5 * abs(vDist / hDist + 0.05))
+# Sets the chosen pixel in pix to the chosen color
+def drawPic(x, y, color, pix):
+    pix[y, x] = color
 
 
+# Redraws the map to represent the current season
+def updateMap(season, terrainData):
+    pass
+
+
+# ==================================================<File Handling>=================================================== #
 # noinspection PyTypeChecker
 def parseElevation(elevationFile):
     eF = open(elevationFile, 'r')
@@ -86,22 +103,79 @@ def parsePath(pathFile):
     return data
 
 
+# =================================================<Get Pacing Data>================================================== #
+# An implementation of Tobler's hiking function for pace on a slope
+def getVertPace(x0, y0, xF, yF, heightArray):
+    hDist = getHDist(x0, y0, xF, yF)
+    vDist = heightArray[yF][xF] - heightArray[y0][x0]
+    return getSlopePace(hDist, vDist)
+
+
+def getSlopePace(dX, dY):
+    return math.e ** (3.5 * abs(dY / dX + 0.05))
+
+
+def getTerrainSpeed(x, y, terrainData):
+    return speedMap[getTerrain(x, y, terrainData)]
+
+
+# =====================================================<Searches>===================================================== #
+def moveWeight(parent, child, heightData, terrainData):
+    x0 = parent.x
+    y0 = parent.y
+    xF = child.x
+    yF = child.y
+
+    terrainSpeed = (getTerrainSpeed(x0, y0, terrainData) + getTerrainSpeed(xF, yF, terrainData)) / 2
+    if terrainSpeed == 0:
+        return None
+
+    dist = getHDist(x0, y0, xF, yF)
+    vertPace = getVertPace(x0, y0, xF, yF, heightData)
+
+    return dist * vertPace / terrainSpeed
+
+
+class myNode:
+    y = 0
+    x = 0
+    parent = None
+    g = 0
+    h = 0
+
+    def __init__(self, x, y, tgtX, tgtY, parent, heightData, terrainData, hFunc):
+        self.x = x
+        self.y = y
+        self.parent = parent
+        if parent is not None:
+            self.g = parent.g + moveWeight(parent, self, heightData, terrainData)
+        else:
+            self.g = 0
+        self.h = hFunc(self, tgtX, tgtY)
+
+
+#   Returns the time to reach destination with a straight line path of optimal slope and terrain (both values 1)
+def straightLineH(node, tgtX, tgtY):
+    return getHDist(node.x, node.y, tgtX, tgtY)
+
+
+def aStar(startX, startY, tgtX, tgtY, heightData, terrainData, hFunc=straightLineH):
+    startNode = myNode(startX, startY, tgtX, tgtY, None, heightData, terrainData, hFunc)
+
+    pass
+
+
+# ==================================================<Main Execution>================================================== #
 def main(terrainFile, elevationFile, pathFile, season, outputFile):
+    # Parse files into useful forms
     im = Image.open(terrainFile)
-    pix = im.load()
-    elevationData = parseElevation(elevationFile)
-    waypoints = parsePath(pathFile)
+    pix = im.load()  # Used to scan the final image, column-major
+    elevationData = parseElevation(elevationFile)  # The elevation of all pixels, row-major
+    waypoints = parsePath(pathFile)  # The coordinates of all points to reach
 
     # Assuming equal [0, 0] (top left), grab max col and row (width and height) with data for both terrain and elevation
     width = min(im.width, len(elevationData[0]))
     height = min(im.height, len(elevationData))
-
-    # Mark the waypoints on the map
-    for point in waypoints:
-        print(point)
-        pix[point[1], point[0]] = pathColor
-
-    im.save(outputFile)
 
 
 if __name__ == '__main__':
