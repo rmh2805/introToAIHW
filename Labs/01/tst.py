@@ -2,25 +2,46 @@ import math
 
 from PIL import Image
 
+
 # im = Image.open("Inputs/mpTerrain.png")
+def pace(slope):
+    return math.e**(3.5 * abs(slope + 0.05))
 
-horiDist = 1000
+
+def time(slope, dist):
+    return pace(slope) * dist
+
+
+def pathTime(pathIn):
+    duration = 0
+    for step in pathIn:
+        duration += time(step, 1)
+    return duration
+
+
+horiDist = 100
 vertDist = 0
-
-rawSlope = vertDist/horiDist
-overallPace = math.e**(3.5 * abs(rawSlope + 0.05))
-
-print(overallPace)
-
 slopes = [0, 1/20, 1, 5, 10, 20, 30, 45, 90]
+for mySlope in slopes[1:]:
+    slopes.append(-mySlope)
 
 
-for slope in slopes[1:]:
-    slopes.append(-slope)
+overallTime = time(vertDist/horiDist, horiDist)
 
 
+def makePath(avgTime, depth, dH=0, timeAcc=0):
+    if depth == 1:
+        return timeAcc + time(dH, 1)
 
-for dHori in range(0, 1000):
-    pass
+    if timeAcc > avgTime:
+        return timeAcc + avgTime
 
-print(slopes)
+    for slopeI in slopes:
+        duration = makePath(avgTime, depth - 1, dH + slopeI, timeAcc + pace(slopeI))
+        if duration < avgTime:
+            return duration
+    return timeAcc + avgTime
+
+
+print(overallTime)
+print(makePath(overallTime, horiDist))
