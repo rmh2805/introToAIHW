@@ -14,3 +14,7 @@ Terrain time contribution:
 PIL image notes:
         The image array (`Image.load()`) is accessed by `[column, row]`, not `[row, column]`.
         `Image.size` is an instance tuple of `(width, height)`.
+
+Output:
+        The paths themselves, in order to make them as jarring as possible, are in CGA Cyan and Magenta alternating
+    any time a waypoint (black) is reached

@@ -1,4 +1,3 @@
-import heapq
 import math
 import sys
 
@@ -13,8 +12,8 @@ waterColor = (0x00, 0x00, 0xFF)
 trailColor = (0x00, 0x00, 0x00)
 
 pathColor = [(0x00, 0xFF, 0xFF), (0xFF, 0x00, 0xFF)]
-waypointColor = (0xFF, 0xFF, 0x00)
-startColor = (0xFF, 0x00, 0x00)
+waypointColor = (0x00, 0x00, 0x00)
+startColor = (0x00, 0x00, 0x00)
 
 colorMap = {(0xF8, 0x94, 0x12): 'Open land',
             (0xFF, 0xC0, 0x00): 'Rough meadow',
@@ -142,13 +141,32 @@ def dequeue(pQueue):
 
 
 # ===================================================<Image Search>=================================================== #
-def findBorders(color, width, height, terrainData):
-    visited = [[False for i in range(width)] for i in range(height)]
+def getAdj(x, y, width, height):
+    adj = []
+    for nX in range(max(x - 1, 0), min(x + 2, width)):
+        for nY in range(max(y - 1, 0), min(y + 2, height)):
+            if nX == x and nY == y:
+                continue
+            else:
+                adj.append((nX, nY))
+    return adj
 
-    queue = [(0, 0)]
-    while len(queue) > 0:
-        tup = queue.pop(0)
-        getNeighbors(tup, terrainData, width, height)
+
+def findBorders(matchColor, width, height, terrainData):
+    borders = set()
+    matchTerrain = colorMap[matchColor]
+
+    for y in range(0, height):
+        for x in range(0, width):
+            terrain = colorMap[terrainData[x, y][0:3]]
+
+            if terrain == matchTerrain:
+                for adj in getAdj(x, y, width, height):
+                    if colorMap[terrainData[adj[0], adj[1]][0:3]] != matchTerrain:
+                        borders.add((x, y))
+                        break
+
+    return borders
 
 
 # ===================================================<Path Search>==================================================== #
@@ -293,29 +311,39 @@ def main(terrainFile, elevationFile, pathFile, season, outputFile):
     width = min(im.width, len(elevationData[0]))
     height = min(im.height, len(elevationData))
 
-    findBorders(waterColor, width, height, pix)
-
-    # path = []
-    # totalTime = 0
-    # for i in range(1, len(waypoints)):
-    #     segment, time = aStar(waypoints[i - 1][0], waypoints[i - 1][1], waypoints[i][0], waypoints[i][1],
-    #                           elevationData, pix,
-    #                           width, height)
-    #     path.append(segment)
-    #     totalTime += time
-    #
-    # for i in range(0, len(path)):
-    #     color = pathColor[i % len(pathColor)]
-    #     for pixel in path[i]:
-    #         drawPic(pixel.x, pixel.y, color, pix)
-    #
-    # for waypoint in waypoints:
-    #     drawPic(waypoint[0], waypoint[1], waypointColor, pix)
-    #
-    # drawPic(waypoints[0][0], waypoints[0][1], startColor, pix)
-    #
+    # borders = findBorders(waterColor, width, height, pix)
+    # print(borders)
+    # for cell in borders:
+    #     drawPic(cell[1], cell[0], startColor, pix)
     # im.save(outputFile)
 
+    path = []
+    totalTime = 0
+    for i in range(1, len(waypoints)):
+        segment, time = aStar(waypoints[i - 1][0], waypoints[i - 1][1], waypoints[i][0], waypoints[i][1],
+                              elevationData, pix,
+                              width, height)
+        path.append(segment)
+        totalTime += time
+
+    for i in range(0, len(path)):
+        color = pathColor[i % len(pathColor)]
+        for pixel in path[i]:
+            drawPic(pixel.x, pixel.y, color, pix)
+
+    for waypoint in waypoints:
+        drawPic(waypoint[0], waypoint[1], waypointColor, pix)
+
+    drawPic(waypoints[0][0], waypoints[0][1], startColor, pix)
+
+    im.save(outputFile)
+
+
+# tempImg = [[waterColor, trailColor],
+#            [waterColor, trailColor],
+#            [trailColor, trailColor]]
+#
+# findBorders(waterColor, len(tempImg[0]), len(tempImg), tempImg)
 
 if __name__ == '__main__':
     argv = sys.argv
