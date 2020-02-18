@@ -17,11 +17,12 @@ mapHeight = -1
 # Used for seasonal changes
 iceColor = (0x80, 0x80, 0xFF)
 mudColor = (0x8E, 0x91, 0x0E)
-leavesColor = (0xFE, 0xFE, 0xFE)
+leavesColor = (0x01, 0x01, 0x01)
 
 # Referenced but present by default
 waterColor = (0x00, 0x00, 0xFF)
 trailColor = (0x00, 0x00, 0x00)
+easyForestColor = (0xFF, 0xFF, 0xFF)
 
 # Used to draw final path
 pathColor = [(0x00, 0xFF, 0xFF), (0xFF, 0x00, 0xFF)]
@@ -48,12 +49,19 @@ colorTerrainMap = {(0xF8, 0x94, 0x12): 'Open land',
 iceDepth = 7
 diagonalIce = False
 
+# Fall
+diagonalLeaves = True
+
+# Spring
+mudDepth = 15
+mudHeight = 1
+diagonalMud = True
 
 # =============================================<Misc>============================================= #
 # Map terrain types to effective speed over them
 terrainSpeedMap = {'Paved road': 1,
                    'Footpath': 1,
-                   'Leaves': .75,
+                   'Leaves': .8,
                    'Open land': .75,
                    'Easy movement forest': .75,
                    'Slow run forest': .6,
@@ -239,6 +247,39 @@ def winterUpdate():
                 visited[adj] = depth + 1
 
 
+def fallUpdate():
+    for border in borderSearch(colorTerrainMap[trailColor]):
+        for adj in getAdj(border[0], border[1], diagonalLeaves):
+            if getColor(adj[0], adj[1]) == easyForestColor:
+                putColor(border[0], border[1], leavesColor)
+                break
+
+
+def springUpdate():
+    visited = {}
+    borders = borderSearch(colorTerrainMap[waterColor])
+    queue = []
+
+    for border in borders:
+        waterHeight = getHeight(border[0], border[1])
+        for adj in getAdj(border[0], border[1], diagonalMud):
+            visited[adj] = (0, waterHeight)
+            queue.append(adj)
+
+    while len(queue) > 0:
+        cell = queue.pop(0)
+        depth, waterHeight = visited[cell]
+        row, col = cell
+
+        if getColor(row, col) == waterColor or depth >= mudDepth or getHeight(row, col) > waterHeight + mudHeight:
+            continue
+
+        putColor(row, col, mudColor)
+        for adj in getAdj(row, col, diagonalMud):
+            if adj not in visited:
+                queue.append(adj)
+                visited[adj] = (depth + 1, waterHeight)
+
 # =================================================<Search Functions>================================================= #
 class myNode:
     coords = None
@@ -326,11 +367,11 @@ def main(terrainFile, elevationFile, pathFile, season, outputFile):
     waypoints = parsePath(pathFile)
 
     if season.lower() == 'fall':
-        pass
+        fallUpdate()
     elif season.lower() == 'winter':
         winterUpdate()
     elif season.lower() == 'spring':
-        pass
+        springUpdate()
 
     # writeImage(outputFile)
     path = findPath(waypoints)
