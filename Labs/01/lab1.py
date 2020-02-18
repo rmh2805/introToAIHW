@@ -10,19 +10,20 @@ leavesColor = (0xFE, 0xFE, 0xFE)
 
 waterColor = (0x00, 0x00, 0xFF)
 trailColor = (0x00, 0x00, 0x00)
+easyColor = (0xFF, 0xFF, 0xFF)
 
 pathColor = [(0x00, 0xFF, 0xFF), (0xFF, 0x00, 0xFF)]
-waypointColor = (0x00, 0x00, 0x00)
-startColor = (0x00, 0x00, 0x00)
+waypointColor = (0x40, 0x00, 0x00)
+startColor = (0x80, 0x80, 0x80)
 
 colorMap = {(0xF8, 0x94, 0x12): 'Open land',
             (0xFF, 0xC0, 0x00): 'Rough meadow',
-            (0xFF, 0xFF, 0xFF): 'Easy movement forest',
             (0x02, 0xD0, 0x3C): 'Slow run forest',
             (0x02, 0x88, 0x28): 'Walk forest',
             (0x05, 0x49, 0x18): 'Impassible vegetation',
             (0x47, 0x33, 0x03): 'Paved road',
             (0xCD, 0x00, 0x65): 'Out of bounds',
+            easyColor: 'Easy movement forest',
             waterColor: 'Lake/Swamp/Marsh',
             trailColor: 'Footpath',
             leavesColor: 'Leaves',
@@ -31,7 +32,7 @@ colorMap = {(0xF8, 0x94, 0x12): 'Open land',
 
 speedMap = {'Paved road': 1,
             'Footpath': 1,
-            'Leaves': .85,
+            'Leaves': .7,
             'Open land': .8,
             'Easy movement forest': .7,
             'Slow run forest': .6,
@@ -133,10 +134,11 @@ def enqueue(pQueue, node):
 
 
 def sortQueue(pQueue):
-    pQueue.sort(key=lambda n: n.getF())
+    pass
 
 
 def dequeue(pQueue):
+    pQueue.sort(key=lambda n: n.getF())
     return pQueue.pop(0)
 
 
@@ -162,16 +164,30 @@ def findBorders(matchColor, width, height, terrainData):
 
             if terrain == matchTerrain:
                 for adj in getAdj(x, y, width, height):
-                    if colorMap[terrainData[adj[0], adj[1]][0:3]] != matchTerrain:
+                    color = terrainData[adj[0], adj[1]][0:3]
+                    if colorMap[color] != matchTerrain:
                         borders.add((x, y))
                         break
 
     return borders
 
 
+def updateFall(width, height, terrainData):
+    borders = findBorders(trailColor, width, height, terrainData)
+    for border in borders:
+        for adj in getAdj(border[0], border[1], width, height):
+            if terrainData[adj[0], adj[1]][0:3] == easyColor:
+                drawPic(border[1], border[0], leavesColor, terrainData)
+
+
+def updateWinter(width, height, terrainData):
+    for i in range(0, 6):
+        borders = findBorders(waterColor, width, height, terrainData)
+        for border in borders:
+            if terrainData[border[0], border[1]][0:3] == waterColor:
+                drawPic(border[1], border[0], iceColor, terrainData)
+
 # ===================================================<Path Search>==================================================== #
-
-
 def moveWeight(parent, child, heightData, terrainData):
     x0 = parent.x
     y0 = parent.y
@@ -311,11 +327,12 @@ def main(terrainFile, elevationFile, pathFile, season, outputFile):
     width = min(im.width, len(elevationData[0]))
     height = min(im.height, len(elevationData))
 
-    # borders = findBorders(waterColor, width, height, pix)
-    # print(borders)
-    # for cell in borders:
-    #     drawPic(cell[1], cell[0], startColor, pix)
-    # im.save(outputFile)
+    if season.lower() == 'fall':
+        updateFall(width, height, pix)
+    elif season.lower() == 'winter':
+        updateWinter(width, height, pix)
+
+    im.save(outputFile)
 
     path = []
     totalTime = 0
@@ -338,12 +355,6 @@ def main(terrainFile, elevationFile, pathFile, season, outputFile):
 
     im.save(outputFile)
 
-
-# tempImg = [[waterColor, trailColor],
-#            [waterColor, trailColor],
-#            [trailColor, trailColor]]
-#
-# findBorders(waterColor, len(tempImg[0]), len(tempImg), tempImg)
 
 if __name__ == '__main__':
     argv = sys.argv
