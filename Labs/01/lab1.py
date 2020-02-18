@@ -32,12 +32,12 @@ startColor = (0xFF, 0x00, 0x00)
 # Map color codes onto terrain types
 colorTerrainMap = {(0xF8, 0x94, 0x12): 'Open land',
                    (0xFF, 0xC0, 0x00): 'Rough meadow',
-                   (0xFF, 0xFF, 0xFF): 'Easy movement forest',
                    (0x02, 0xD0, 0x3C): 'Slow run forest',
                    (0x02, 0x88, 0x28): 'Walk forest',
                    (0x05, 0x49, 0x18): 'Impassible vegetation',
                    (0x47, 0x33, 0x03): 'Paved road',
                    (0xCD, 0x00, 0x65): 'Out of bounds',
+                   easyForestColor: 'Easy movement forest',
                    waterColor: 'Lake/Swamp/Marsh',
                    trailColor: 'Footpath',
                    leavesColor: 'Leaves',
