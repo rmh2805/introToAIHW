@@ -1,4 +1,4 @@
-import heapq
+
 import math
 import sys
 
@@ -139,16 +139,6 @@ def sortQueue(pQueue):
 
 def dequeue(pQueue):
     return pQueue.pop(0)
-
-
-# ===================================================<Image Search>=================================================== #
-def findBorders(color, width, height, terrainData):
-    visited = [[False for i in range(width)] for i in range(height)]
-
-    queue = [(0, 0)]
-    while len(queue) > 0:
-        tup = queue.pop(0)
-        getNeighbors(tup, terrainData, width, height)
 
 
 # ===================================================<Path Search>==================================================== #
