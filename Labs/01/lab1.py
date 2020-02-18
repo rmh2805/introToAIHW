@@ -43,6 +43,12 @@ colorTerrainMap = {(0xF8, 0x94, 0x12): 'Open land',
                    iceColor: 'Ice',
                    mudColor: 'Mud'}
 
+# ========================================<Season Tweaks>========================================= #
+# Winter
+iceDepth = 7
+diagonalIce = False
+
+
 # =============================================<Misc>============================================= #
 # Map terrain types to effective speed over them
 terrainSpeedMap = {'Paved road': 1,
@@ -54,7 +60,7 @@ terrainSpeedMap = {'Paved road': 1,
                    'Walk forest': .4,
                    'Rough meadow': .4,
                    'Mud': .3,
-                   'Ice': .2,
+                   'Ice': 10 ** -1000,
                    'Impassible vegetation': 0,
                    'Lake/Swamp/Marsh': 0,
                    'Out of bounds': 0}
@@ -138,12 +144,21 @@ def getTerrain(row, col):
 
 
 # ====================================================<Math Utils>==================================================== #
-def getAdj(row, col):
+def getAdj(row, col, inclDiag=True):
     global mapWidth, mapHeight
     adj = []
-    for aRow in range(max(row - 1, 0), min(row + 2, mapHeight)):
+
+    if inclDiag:
+        for aRow in range(max(row - 1, 0), min(row + 2, mapHeight)):
+            for aCol in range(max(col - 1, 0), min(col + 2, mapWidth)):
+                adj.append((aRow, aCol))
+    else:
+        for aRow in range(max(row - 1, 0), min(row + 2, mapHeight)):
+            adj.append((aRow, col))
         for aCol in range(max(col - 1, 0), min(col + 2, mapWidth)):
-            adj.append((aRow, aCol))
+            adj.append((row, aCol))
+        adj.remove((row, col))
+
     adj.remove((row, col))
     return adj
 
@@ -187,6 +202,41 @@ def costMultiplier(start, tgt):
 
 def moveCost(start, tgt):
     return getHDist(start[0], start[1], tgt[0], tgt[1]) * costMultiplier(start, tgt)
+
+
+# =================================================<Seasonal Updates>================================================= #
+def borderSearch(targetTerrainName):
+    borders = []
+    for row in range(0, mapHeight):
+        for col in range(0, mapWidth):
+            if getTerrain(row, col) == targetTerrainName:
+                for adj in getAdj(row, col):
+                    adjTerrain = getTerrain(adj[0], adj[1])
+                    if adjTerrain != 'Out of bounds' and adjTerrain != targetTerrainName:
+                        borders.append((row, col))
+                        break
+    return borders
+
+
+def winterUpdate():
+    visited = {}
+    queue = borderSearch(colorTerrainMap[waterColor])
+    for border in queue:
+        visited[border] = 0
+
+    while len(queue) > 0:
+        cell = queue.pop(0)
+        depth = visited[cell]
+        row, col = cell
+
+        if getColor(row, col) != waterColor or depth >= iceDepth:
+            continue
+
+        putColor(row, col, iceColor)
+        for adj in getAdj(row, col, diagonalIce):
+            if adj not in visited:
+                queue.append(adj)
+                visited[adj] = depth + 1
 
 
 # =================================================<Search Functions>================================================= #
@@ -275,10 +325,26 @@ def main(terrainFile, elevationFile, pathFile, season, outputFile):
     initializeTerrain(terrainFile)
     waypoints = parsePath(pathFile)
 
+    if season.lower() == 'fall':
+        pass
+    elif season.lower() == 'winter':
+        winterUpdate()
+    elif season.lower() == 'spring':
+        pass
+
+    # writeImage(outputFile)
+    path = findPath(waypoints)
+    drawPath(path, waypoints, outputFile)
+
+
+def findPath(waypoints):
     path = []
     for i in range(1, len(waypoints)):
         path.append(aStar(waypoints[i - 1], waypoints[i]))
+    return path
 
+
+def drawPath(path, waypoints, outputFile):
     for i in range(0, len(path)):
         for step in path[i]:
             putColor(step[0], step[1], pathColor[i % len(pathColor)])
