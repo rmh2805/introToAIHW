@@ -1,20 +1,25 @@
 Elevation time contribution:
         Using Tobler's hiking function (probably incorrectly) to approximate pace (p) given slope (S = dh/dx) for a
     maximum speed (m): p = m * e**(3.5 * abs(S + 0.05)). Its minimum (1) is reached with a -1/20 slope, and allows for
-    maximum unit speed (in our case m = 1 in order to return a percentage). Multiply distance by this value to get a
-    time value.
-
-        This was generally kept
+    maximum unit speed (in our case m = 1 in order to return a percentage). I multiplied distance by this value to get
+    a time value. This was generally kept as-is throughout the process.
 
 Terrain time contribution:
-        Stored in the `speedMap`, mapping terrain strings to speed values. This is my personal approximation of the
-    ratios of movement speed over a flat surface of each provided terrain type with respect to paved roads (1). Divide
-    distance by these values to get a time value.
+        The `terrainSpeedMap`, maps terrain strings (mapped from their colors in  the `colorTerrainMap`) to speed
+    values. This is my personal approximation of the ratios of movement speed over a flat surface of each provided
+    terrain type with respect to paved roads (1). Divide distance by these values to get a time value.
         These are based entirely around my own perception, and I could comprehend speed more easily than pace, hence
     speed values given here while elevation has the more directly useful pace function.
-
         In the end, I ended up tweaking these to more closely match the real paths and the example algorithmic paths.
+
+Heuristic:
+        The heuristic I used in my implementation was the travel time over ideal slope and terrain (both set to one to
+    avoid a magic number). I did also consider using the average slope between start and end points, but decided to
+    hold off once I realized it was not necessarily admissible (brute force proof in tst.py), and was satisfied with
+    the performance of that initial heuristic, so kept it.
 
 Output:
         The paths themselves, in order to make them as jarring as possible, are in CGA Cyan and Magenta alternating
-    any time a waypoint (yellow) is reached. The start point is marked in red.
+    any time a waypoint (yellow) is reached. The start point is marked in red. Since the path is drawn in order, later
+    segments of the path are drawn on top of earlier segments at intersection points
+        As for seasonal updates, ice is represented with a pale blue and mud is a brown-green color.
