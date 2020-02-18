@@ -4,6 +4,8 @@ Elevation time contribution:
     maximum unit speed (in our case m = 1 in order to return a percentage). Multiply distance by this value to get a
     time value.
 
+        This was generally kept
+
 Terrain time contribution:
         Stored in the `speedMap`, mapping terrain strings to speed values. This is my personal approximation of the
     ratios of movement speed over a flat surface of each provided terrain type with respect to paved roads (1). Divide
@@ -11,10 +13,8 @@ Terrain time contribution:
         These are based entirely around my own perception, and I could comprehend speed more easily than pace, hence
     speed values given here while elevation has the more directly useful pace function.
 
-PIL image notes:
-        The image array (`Image.load()`) is accessed by `[column, row]`, not `[row, column]`.
-        `Image.size` is an instance tuple of `(width, height)`.
+        In the end, I ended up tweaking these to more closely match the real paths and the example algorithmic paths.
 
 Output:
         The paths themselves, in order to make them as jarring as possible, are in CGA Cyan and Magenta alternating
-    any time a waypoint (red) is reached. The start point is marked in grey
+    any time a waypoint (yellow) is reached. The start point is marked in red.
