@@ -5,21 +5,46 @@ Elevation time contribution:
     a time value. This was generally kept as-is throughout the process.
 
 Terrain time contribution:
-        The `terrainSpeedMap`, maps terrain strings (mapped from their colors in  the `colorTerrainMap`) to speed
-    values. This is my personal approximation of the ratios of movement speed over a flat surface of each provided
-    terrain type with respect to paved roads (1). Divide distance by these values to get a time value.
+        In my implementation, the `terrainSpeedMap`, maps terrain strings (mapped from their colors in  the
+    `colorTerrainMap`) to speed values. This is my personal approximation of the ratios of movement speed over a flat
+    surface of each provided terrain type with respect to paved roads (1). Divide distance by these values to get a
+    time value.
         These are based entirely around my own perception, and I could comprehend speed more easily than pace, hence
     speed values given here while elevation has the more directly useful pace function.
         In the end, I ended up tweaking these to more closely match the real paths and the example algorithmic paths.
+     Ice in particular proved problematic, as I wanted to avoid it unless absolutely necessary (e.g. a waypoint on the
+     ice itself) hence the massive gap between it and the next-slowest passable terrain (mud).
 
 Heuristic:
         The heuristic I used in my implementation was the travel time over ideal slope and terrain (both set to one to
-    avoid a magic number). I did also consider using the average slope between start and end points, but decided to
-    hold off once I realized it was not necessarily admissible (brute force proof in tst.py), and was satisfied with
-    the performance of that initial heuristic, so kept it.
+    avoid a magic number). The assumptions made (shortest path, ideal slope, ideal terrain) were all made to simulate
+    the existence optimal route to the goal, meaning any deviations in terrain, slope, or path could only increase the
+    cost, ensuring that my heuristic is admissible.
+        I did also consider using the average slope between start and end points, but decided to hold off once I
+    realized it was not necessarily admissible (brute force proof in tst.py). I was satisfied with the performance of
+    that initial heuristic (and didn't want the hassle of bounding the error) so I kept it in place throughout.
+
+Seasonal Algorithms:
+        The base of all of my seasonal algorithms is the `borderSearch` function, which returns a list of all pixels in
+    the terrain map of a certain terrain type (passed as an argument, i.e. trails for autumn and water for winter and
+    spring). It accomplishes this by scanning each pixel in the map, and on every target pixel, checking if the pixel
+    borders terrain of a different, non-out-of-bounds terrain type.
+        My autumn algorithm simply checks if each border trail pixel is adjacent to an easy movement forest and, if so,
+    changes the considered pixel to the leaf-strewn color. When finding adjacent pixels, this algorithm included
+    diagonally adjacent pixels as well as linearly adjacent ones.
+        My winter algorithm performs a breadth first search from each of the water border pixels, tracking their depths
+    in a visited dictionary. To start, each border is enqueued with a depth of 0, and from there each enqueued pixel is
+    considered. If the pixel is not a water pixel or has passed the maximum depth, it is discarded. Otherwise, it is
+    recolored to ice and each of its unvisited neighbors is marked as visited with an incremented depth and enqueued.
+    This algorithm only included linearly adjacent pixels in its expansion to match the provided winter output map.
+        My spring algorithm is a modified version of the winter algorithm. The only differences are that the initially
+    enqueued pixels are the neighbors of the border pixels, Water pixels are the only pixels rejected by terrain,
+    pixels are also rejected if they have an elevation >`waterHeight + 1`, and the visited map stores both distance
+    from the nearest water tile and the height of the highest nearby water source.
 
 Output:
-        The paths themselves, in order to make them as jarring as possible, are in CGA Cyan and Magenta alternating
-    any time a waypoint (yellow) is reached. The start point is marked in red. Since the path is drawn in order, later
-    segments of the path are drawn on top of earlier segments at intersection points
-        As for seasonal updates, ice is represented with a pale blue and mud is a brown-green color.
+        The paths themselves, in order to make them as jarring as possible, are in Cyan and Magenta alternating any
+    time a waypoint (yellow) is reached. The start point is marked in red. Since the path is drawn in order, later
+    segments of the path are drawn on top of earlier segments at intersection points.
+        As for seasonal updates, ice is represented with a pale blue, leaf-strewn trails are a dark red color,
+    and mud is a brown-green color.

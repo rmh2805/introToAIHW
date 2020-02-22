@@ -17,7 +17,7 @@ mapHeight = -1
 # Used for seasonal changes
 iceColor = (0x80, 0x80, 0xFF)
 mudColor = (0x8E, 0x91, 0x0E)
-leavesColor = (0x01, 0x01, 0x01)
+leavesColor = (0x4D, 0x19, 0x13)
 
 # Referenced but present by default
 waterColor = (0x00, 0x00, 0xFF)
@@ -45,17 +45,18 @@ colorTerrainMap = {(0xF8, 0x94, 0x12): 'Open land',
                    mudColor: 'Mud'}
 
 # ========================================<Season Tweaks>========================================= #
+
 # Winter
-iceDepth = 7
+iceDepth = 6
 diagonalIce = False
 
 # Fall
 diagonalLeaves = True
 
 # Spring
-mudDepth = 15
+mudDepth = 14
 mudHeight = 1
-diagonalMud = True
+diagonalMud = False
 
 # =============================================<Misc>============================================= #
 # Map terrain types to effective speed over them
@@ -213,12 +214,12 @@ def moveCost(start, tgt):
 
 
 # =================================================<Seasonal Updates>================================================= #
-def borderSearch(targetTerrainName):
+def borderSearch(targetTerrainName, borderDiag=True):
     borders = []
     for row in range(0, mapHeight):
         for col in range(0, mapWidth):
             if getTerrain(row, col) == targetTerrainName:
-                for adj in getAdj(row, col):
+                for adj in getAdj(row, col, borderDiag):
                     adjTerrain = getTerrain(adj[0], adj[1])
                     if adjTerrain != 'Out of bounds' and adjTerrain != targetTerrainName:
                         borders.append((row, col))
@@ -228,7 +229,7 @@ def borderSearch(targetTerrainName):
 
 def winterUpdate():
     visited = {}
-    queue = borderSearch(colorTerrainMap[waterColor])
+    queue = borderSearch(colorTerrainMap[waterColor], diagonalIce)
     for border in queue:
         visited[border] = 0
 
@@ -248,7 +249,7 @@ def winterUpdate():
 
 
 def fallUpdate():
-    for border in borderSearch(colorTerrainMap[trailColor]):
+    for border in borderSearch(colorTerrainMap[trailColor], diagonalLeaves):
         for adj in getAdj(border[0], border[1], diagonalLeaves):
             if getColor(adj[0], adj[1]) == easyForestColor:
                 putColor(border[0], border[1], leavesColor)
@@ -257,14 +258,17 @@ def fallUpdate():
 
 def springUpdate():
     visited = {}
-    borders = borderSearch(colorTerrainMap[waterColor])
+    borders = borderSearch(colorTerrainMap[waterColor], diagonalMud)
     queue = []
 
     for border in borders:
         waterHeight = getHeight(border[0], border[1])
         for adj in getAdj(border[0], border[1], diagonalMud):
-            visited[adj] = (0, waterHeight)
-            queue.append(adj)
+            if adj not in visited:
+                visited[adj] = (0, waterHeight)
+                queue.append(adj)
+            else:
+                visited[adj] = (0, max(visited[adj][1], waterHeight))
 
     while len(queue) > 0:
         cell = queue.pop(0)
@@ -279,6 +283,7 @@ def springUpdate():
             if adj not in visited:
                 queue.append(adj)
                 visited[adj] = (depth + 1, waterHeight)
+
 
 # =================================================<Search Functions>================================================= #
 class myNode:
