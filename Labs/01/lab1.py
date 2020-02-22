@@ -23,6 +23,7 @@ leavesColor = (0x4D, 0x19, 0x13)
 waterColor = (0x00, 0x00, 0xFF)
 trailColor = (0x00, 0x00, 0x00)
 easyForestColor = (0xFF, 0xFF, 0xFF)
+oobColor = (0xCD, 0x00, 0x65)
 
 # Used to draw final path
 pathColor = [(0x00, 0xFF, 0xFF), (0xFF, 0x00, 0xFF)]
@@ -36,7 +37,7 @@ colorTerrainMap = {(0xF8, 0x94, 0x12): 'Open land',
                    (0x02, 0x88, 0x28): 'Walk forest',
                    (0x05, 0x49, 0x18): 'Impassible vegetation',
                    (0x47, 0x33, 0x03): 'Paved road',
-                   (0xCD, 0x00, 0x65): 'Out of bounds',
+                   oobColor: 'Out of bounds',
                    easyForestColor: 'Easy movement forest',
                    waterColor: 'Lake/Swamp/Marsh',
                    trailColor: 'Footpath',
@@ -275,7 +276,8 @@ def springUpdate():
         depth, waterHeight = visited[cell]
         row, col = cell
 
-        if getColor(row, col) == waterColor or depth >= mudDepth or getHeight(row, col) > waterHeight + mudHeight:
+        if getColor(row, col) == waterColor or getColor(row, col) == oobColor \
+                or depth >= mudDepth or getHeight(row, col) > waterHeight + mudHeight:
             continue
 
         putColor(row, col, mudColor)
