@@ -1,0 +1,29 @@
+
+List = [beatrice, eugine, harry, james, louise, peter, william, zara].
+
+List = [elizabeth, kydd, philip, spencer].
+
+List = [george, mum].
+
+List = [beatrice, eugine, harry, james, louise, peter, william, zara].
+
+List = [charles, diana, elizabeth, george, kydd, mum, philip, spencer].
+
+List = [andrew, edward].
+
+List = [anne].
+
+List = [zara].
+
+List = [peter].
+
+List = [beatrice, eugine, harry, james, louise, william].
+
+List = [mark].
+
+List = [sarah, sophie].
+
+List = [anne, margaret, sarah, sophie].
+
+List = [andrew, edward, mark].
+
