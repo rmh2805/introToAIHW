@@ -111,23 +111,34 @@ def attrInfoGain(dataSet, attr, attrRange, categories):
     return subsetEntropy(dataSet, categories) - total, split
 
 
-def decisionTreeLearning(examples, attrs, parentSet, categories):
-    if len(examples) == 0:
-        return maxCategory(parentSet)
-    elif united(examples, categories):
-        pass
+dNodeID = 0
+
+
+def getDNodeID():
+    global dNodeID
+    temp = dNodeID
+    dNodeID += 1
+    return temp
 
 
 class dNode:
-    def __init__(self, trainingSet, attrSet, attrRanges, categories, parent):
-        attrSet = set(attrSet).copy()
-        categories = list(categories)
+    dNodeEncodingHeader = 'dNodeEncoding\n'
+
+    def __init__(self, uid=None):
+        global dNodeID
 
         self.attr = None
         self.bias = None
         self.children = dict()
         self.isLeaf = True
+        if uid is None:
+            self.uid = getDNodeID()
+        else:
+            self.uid = uid
 
+    def train(self, trainingSet, attrSet, attrRanges, categories, parent):
+        attrSet = set(attrSet).copy()
+        categories = list(categories)
         if len(trainingSet) == 0 and parent is not None:
             self.bias = parent.bias
         elif len(trainingSet) == 0:
@@ -156,12 +167,126 @@ class dNode:
         self.attr = bestAttr
         attrSet.remove(self.attr)
         for attrVal in attrRanges[self.attr]:
-            self.children[attrVal] = dNode(bestSplit[attrVal], attrSet, attrRanges, categories, self)
+            self.children[attrVal] = dNode()
+            self.children[attrVal].train(bestSplit[attrVal], attrSet, attrRanges, categories, self)
+
+    def parseDict(self, paramDict):
+        self.uid = paramDict['uid']
+        self.attr = paramDict['attr']
+        self.bias = paramDict['bias']
+        self.isLeaf = paramDict['isLeaf']
+
+        self.children = dict()
+        if len(paramDict['children'].strip()) == 0:
+            return
+
+        for group in paramDict['children'].split('..'):
+            group = group.split(';')
+            self.children[group[0].strip()] = int(group[1].strip())
+
+    def eval(self, attrMap):
+        if self.isLeaf:
+            return self.bias
+        else:
+            return self.children[attrMap[self.attr]].eval(attrMap)
+
+    def encode(self, fileName):
+        fp = open(fileName, 'w')
+        fp.write(dNode.dNodeEncodingHeader)
+        queue = [self]
+        while len(queue) > 0:
+            node = queue.pop(0)
+            fp.write(str(node) + '\n')
+
+            if node.isLeaf:
+                continue
+
+            for attrVal in node.children:
+                queue.append(node.children[attrVal])
+
+        fp.close()
+
+    @staticmethod
+    def decode(fileName):
+        fp = open(fileName, 'r')
+        if fp.readline().strip() != dNode.dNodeEncodingHeader.strip():
+            fp.close()
+            return None
+
+        data = fp.readlines()
+        dicts = []
+        fp.close()
+
+        for i in range(0, len(data)):
+            datum = data[i].strip()[1:-1].split(',')
+            fieldDict = dict()
+            for field in datum:
+                field = field.strip().split(':')
+                fieldDict[field[0].strip()] = field[1].strip()
+
+            if fieldDict['type'] != "dNode":
+                continue
+            dicts.append(fieldDict)
+            fieldDict['uid'] = int(fieldDict['uid'])
+            fieldDict['isLeaf'] = fieldDict['isLeaf'] == 'True'
+            fieldDict['children'] = fieldDict['children'][1:-1]
+
+            if fieldDict['attr'] == 'None':
+                fieldDict['attr'] = None
+
+        baseNode = None
+        nodeDict = dict()
+        for i in range(0, len(dicts)):
+            paramDict = dicts[i]
+            nodeUID = paramDict['uid']
+            node = dNode()
+            if i == 0:
+                baseNode = node
+
+            nodeDict[nodeUID] = node
+
+            node.parseDict(paramDict)
+
+        for uid in nodeDict:
+            node = nodeDict[uid]
+            for child in node.children:
+                node.children[child] = nodeDict[node.children[child]]
+
+        return baseNode
+
+    def __str__(self):
+        st = '{type:dNode'
+        st += ', uid:' + str(self.uid)
+        st += ', bias:' + str(self.bias)
+        st += ', attr:' + str(self.attr)
+        st += ', isLeaf:' + str(self.isLeaf)
+        st += ', children:{'
+        for attrVal in self.children:
+            if st[-1] != '{':
+                st += '..'
+            st += str(attrVal) + ';' + str(self.children[attrVal].uid)
+
+        st += '}}'
+        return st
+
+
+def testCreation(trainingDataFile):
+    dataSet, attrs, attrRanges, categories = readData(trainingDataFile)
+    baseNode = dNode()
+    baseNode.train(dataSet, attrs, attrRanges, categories, None)
+    return baseNode
+
+
+def testEval(baseNode, testData):
+    print(baseNode.eval(testData))
 
 
 def main():
-    dataSet, attrs, attrRanges, categories = readData('classExample.data')
-    baseNode = dNode(dataSet, attrs, attrRanges, categories, None)
+    baseNode = testCreation('classExample.data')
+    baseAttrs = {'Horn': 'True', 'Flute': 'False', 'Guitar': 'False'}
+    baseNode.encode('baseTree.data')
+    baseNode = dNode.decode('baseTree.data')
+    print(baseNode.eval(baseAttrs))
     pTree(baseNode)
 
 
