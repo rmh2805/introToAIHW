@@ -20,8 +20,8 @@ class dTree:
 
         self.nodeCount = 0
 
-    @staticmethod
-    def maxKey(count):
+    @classmethod
+    def maxKey(cls, count):
         maxCat = None
         for category in count:
             if maxCat is None:
@@ -73,6 +73,10 @@ class dTree:
         return -total
 
     @classmethod
+    def getMajority(cls, tSet, categories):
+        return cls.maxKey(countCategories(tSet, categories))
+
+    @classmethod
     def maxAttr(cls, tSet, attrSet, attrRanges, categories):
         base = cls.setEntropy(tSet, categories)
 
@@ -120,8 +124,8 @@ class dTree:
             nodeDict['bias'] = self.nodes[parent]['bias']  # Nothing to train on, default to parent
             return  # This branch is terminated
 
-        count = countCategories(tSet, categories)  # Count the categories once
-        nodeDict['bias'] = self.maxKey(count)  # This node is biased towards tSet's plurality category
+        # This node is biased towards tSet's plurality category
+        nodeDict['bias'] = self.getMajority(tSet, categories)
 
         if len(attrSet) == 0:
             nodeDict['isLeaf'] = True  # Nothing to split on, can't branch further
@@ -176,13 +180,78 @@ class dTree:
         return '<dTree: ' + str(self.attributes) + '->' + str(self.categories) + '>'
 
 
-class adaTree(dTree):
+class weightedDTree(dTree):
     def __init__(self):
-        super(adaTree, self).__init__()
+        super(weightedDTree, self).__init__()
+
+    def teachWeighted(self, tSet, weights, attrSet, attrRanges, categories):
+        if len(weights) < len(tSet):
+            return False
+
+        tSet = list(tSet)
+        wTSet = list()
+        for i in range(0, len(weights)):
+            wTSet.append((tSet[i][0], tSet[i][1], weights[i]))
+
+        self.teach(wTSet, attrSet, attrRanges, categories)
+        return True
+
+    @classmethod
+    def setEntropy(cls, tSet, categories):
+        if len(tSet) == 0:
+            return -1
+
+        sums = cls.categoryWeights(tSet, categories)
+
+        total = 0.0
+        for category in categories:
+            if sums[category] == 0:
+                continue
+            total += sums[category] * log2(sums[category])
+
+        return -total
+
+    @classmethod
+    def categoryWeights(cls, tSet, categories):
+        sums = dict()
+        for category in categories:
+            sums[category] = 0.0
+
+        for datum in tSet:
+            sums[datum[0]] += datum[2]
+
+        return sums
 
     @classmethod
     def maxAttr(cls, tSet, attrSet, attrRanges, categories):
-        return 'adaTree maxAttr'
+        base = cls.setEntropy(tSet, categories)
+
+        bestAttr = None
+        bestSplit = None
+        bestInfoGain = None
+        for attr in attrSet:
+            split = cls.splitAttr(tSet, attr, attrRanges[attr])
+
+            remainder = 0.0
+            for val in split:
+                valWeight = 0.0
+                for datum in split[val]:
+                    valWeight += datum[2]
+                remainder += valWeight * cls.setEntropy(split[val], categories)
+
+            infoGain = base - remainder
+            if bestInfoGain is not None and bestInfoGain > infoGain:
+                continue
+
+            bestAttr = attr
+            bestSplit = split
+            bestInfoGain = infoGain
+
+        return bestAttr, bestSplit
+
+    @classmethod
+    def getMajority(cls, tSet, categories):
+        return cls.maxKey(cls.categoryWeights(tSet, categories))
 
     def __str__(self):
-        return '<adaTree: ' + str(self.attributes) + '->' + str(self.categories) + '>'
+        return '<weightedDTree: ' + str(self.attributes) + '->' + str(self.categories) + '>'

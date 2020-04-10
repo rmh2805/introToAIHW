@@ -34,10 +34,10 @@ def pTree(node, depth=1):
 
 
 def main():
-    baseNode = testCreation('classExample.data')
+    baseNode = testCreation('Data/classExample.data')
     baseAttrs = {'Horn': 'True', 'Flute': 'False', 'Guitar': 'False'}
-    baseNode.encode('baseTree.data')
-    baseNode = dNode.decode('baseTree.data')
+    baseNode.encode('Data/baseTree.data')
+    baseNode = dNode.decode('Data/baseTree.data')
     print(baseNode.eval(baseAttrs))
     pTree(baseNode)
 
