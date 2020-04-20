@@ -8,10 +8,13 @@ def main():
     dataSet, attrs, attrRanges, categories = readData('Data/classExample.data')
     wTree = weightedDTree()
 
-    weight = float(1) / len(dataSet)
+    weight = float(1) / (len(dataSet) + 2)
     weights = []
     for datum in dataSet:
         weights.append(weight)
+
+    print(dataSet[0])
+    weights[9] += 2*weight
 
     wTree.teachWeighted(dataSet, weights, attrs, attrRanges, categories)
 
@@ -22,16 +25,11 @@ def main():
     false = 'False'
     vals = [true, false]
 
-    for hornVal in vals:
-        for fluteVal in vals:
-            for guitarVal in vals:
-                testDict = {'Horn': hornVal, 'Flute': fluteVal, 'Guitar': guitarVal}
-                if wTree.eval(testDict) != tree.eval(testDict):
-                    print('\terror on ' + str(testDict))
-                    return
-                print('\t' + str(testDict) + ' -> ' + tree.eval(testDict))
+    for i in range(0, len(dataSet)):
+        testCat, testDict = dataSet[i]
+        if testCat != wTree.eval(testDict):
+            print(i)
 
 
-for i in range(0, 1000):
-    print('Attempt ' + str(i) + ':')
+for itt in range(0, 1):
     main()
