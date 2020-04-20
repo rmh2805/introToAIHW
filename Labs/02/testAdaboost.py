@@ -4,7 +4,7 @@ from includes.readData import readData
 
 
 def main():
-    meh()
+    dataSet, attrs, attrRanges, categories = readData('Data/classExample.data')
     return
 
 

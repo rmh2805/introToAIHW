@@ -1,8 +1,6 @@
 from includes.dTree import dTree, weightedDTree
 from includes.readData import readData
 
-import pickle
-
 
 def main():
     dataSet, attrs, attrRanges, categories = readData('Data/classExample.data')
