@@ -8,13 +8,10 @@ def main():
     dataSet, attrs, attrRanges, categories = readData('Data/classExample.data')
     wTree = weightedDTree()
 
-    weight = float(1) / (len(dataSet) + 2)
+    weight = float(1) / (len(dataSet))
     weights = []
     for datum in dataSet:
         weights.append(weight)
-
-    print(dataSet[0])
-    weights[9] += 2*weight
 
     wTree.teachWeighted(dataSet, weights, attrs, attrRanges, categories)
 
