@@ -11,7 +11,7 @@ def main():
     for datum in dataSet:
         weights.append(weight)
 
-    wTree.teachWeighted(dataSet, weights, attrs, attrRanges, categories)
+    wTree.teachWeighted(dataSet, weights, attrs, attrRanges, categories, 1)
 
     tree = dTree()
     tree.teach(dataSet, attrs, attrRanges, categories)
@@ -24,6 +24,8 @@ def main():
         testCat, testDict = dataSet[i]
         if testCat != wTree.eval(testDict):
             print(i)
+
+    wTree.beautify()
 
 
 for itt in range(0, 1):

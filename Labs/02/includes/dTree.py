@@ -100,7 +100,7 @@ class dTree:
 
         return bestAttr, bestSplit
 
-    def teach(self, tSet, attrSet, attrRanges, categories, parent=None):
+    def teach(self, tSet, attrSet, attrRanges, categories, parent=None, maxDepth=-1):
         # ==========================================<Handle Inputs>=========================================== #
         if parent is None:  # At the root of the tree, record categories and attrs
             self.categories = categories
@@ -135,6 +135,13 @@ class dTree:
             nodeDict['isLeaf'] = True  # No need to split further, all in agreement here
             return  # This branch is terminated
 
+        if maxDepth == 0:
+            nodeDict['isLeaf'] = True  # Reached max depth, terminate
+            return  # This branch is terminated
+
+        if maxDepth > 0:
+            maxDepth -= 1
+
         # ==========================================<Make Children>=========================================== #
         attr, split = self.maxAttr(tSet, attrSet, attrRanges, categories)
         nodeDict['attr'] = attr
@@ -143,7 +150,8 @@ class dTree:
         attrSet.remove(attr)  # Can no longer split on this attr
         for val in attrRanges[attr]:
             nodeDict['children'][val] = self.nodeCount  # The next child made will be my child from this node
-            self.teach(split[val], attrSet, attrRanges, categories, uid)  # Train a new child after splitting on attr
+            self.teach(split[val], attrSet, attrRanges, categories, uid,
+                       maxDepth)  # Train a new child after splitting on attr
 
     def beautify(self, node=0, depth=0):
         if depth == 0:
@@ -184,7 +192,7 @@ class weightedDTree(dTree):
     def __init__(self):
         super(weightedDTree, self).__init__()
 
-    def teachWeighted(self, tSet, weights, attrSet, attrRanges, categories):
+    def teachWeighted(self, tSet, weights, attrSet, attrRanges, categories, maxDepth=-1):
         if len(weights) < len(tSet):
             return False
 
@@ -193,7 +201,7 @@ class weightedDTree(dTree):
         for i in range(0, len(weights)):
             wTSet.append((tSet[i][0], tSet[i][1], weights[i]))
 
-        self.teach(wTSet, attrSet, attrRanges, categories)
+        self.teach(wTSet, attrSet, attrRanges, categories, maxDepth=maxDepth)
         return True
 
     @classmethod
@@ -255,3 +263,5 @@ class weightedDTree(dTree):
 
     def __str__(self):
         return '<weightedDTree: ' + str(self.attributes) + '->' + str(self.categories) + '>'
+
+
