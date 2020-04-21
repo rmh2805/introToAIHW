@@ -1,10 +1,13 @@
 import pickle
+import sys
 from includes.dTree import dTree
-from includes.adaTree import meh
+from includes.adaTree import adaTree
+
 
 # Sets the default number of hypotheses for adaboost
 def defaultAdaboostK():
     return 5
+
 
 # This function will train either a decision tree (learningType = "dt") or adaboost on decision stumps
 # (learningType = "ada") hypothesis to distinguish between dutch and english using a file of labeled
@@ -23,8 +26,12 @@ def train(exampleFile, hypothesisFile, learningType, maxDepth=-1):
 
     isAda = learningType == 'ada'
     if isAda and maxDepth == -1:
-        maxDepth = defaultAdaboostK()   # maxDepth handling for adaboost
+        maxDepth = defaultAdaboostK()  # maxDepth handling for adaboost
 
 
 def predict(hypothesisFile, dataFile):
     pass
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        exit(1)

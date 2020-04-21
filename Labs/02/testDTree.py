@@ -1,9 +1,9 @@
 from includes.dTree import dTree, weightedDTree
-from includes.readData import readData
+from includes.readData import readExampleData
 
 
 def main():
-    dataSet, attrs, attrRanges, categories = readData('Data/classExample.data')
+    dataSet, attrs, attrRanges, categories = readExampleData('Data/andExample.data')
     wTree = weightedDTree()
 
     weight = float(1) / (len(dataSet))
@@ -11,7 +11,7 @@ def main():
     for datum in dataSet:
         weights.append(weight)
 
-    wTree.teachWeighted(dataSet, weights, attrs, attrRanges, categories, 1)
+    wTree.teachWeighted(dataSet, weights, attrs, attrRanges, categories)
 
     tree = dTree()
     tree.teach(dataSet, attrs, attrRanges, categories)
