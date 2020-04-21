@@ -70,3 +70,8 @@ class adaTree:
         if self.threshold(tot) == 1:
             return self.posCat
         return self.negCat
+
+    def beautify(self):
+        for i in range(0, len(self.hypotheses)):
+            print('\n===Hypothesis ' + str(i + 1) + ' (' + str(self.hypoWeights[i]) + ')===')
+            self.hypotheses[i].beautify()

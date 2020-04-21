@@ -2,6 +2,28 @@ import pickle
 import sys
 from includes.dTree import dTree
 from includes.adaTree import adaTree
+from includes.readData import readLangFile
+from includes.attribute import attrSample, attribute
+
+# Define the set of attributes to scan on
+attrDef = [('s aa', 'substring', 'aa'),
+           ('w the', 'word', 'the'),
+           ('w de', 'word', 'de'),
+           ('s ee', 'substring', 'ee'),
+           ('w het', 'word', 'het'),
+           ('w and', 'word', 'and'),
+           ('w of', 'word', 'of'),
+           ('s v', 'substring', 'v'),
+           ('w door', 'word', 'w'),
+           ('s oo', 'substring', 'oo')]
+
+attrSet = set()
+attrRanges = dict()
+for tpl in attrDef:
+    key = tpl[0]
+    attrRanges[key] = {True, False}
+    attrSet.add(key)
+
 
 
 # Sets the default number of hypotheses for adaboost
@@ -21,17 +43,47 @@ def defaultAdaboostK():
 # `defaultAdaboostK` function
 def train(exampleFile, hypothesisFile, learningType, maxDepth=-1):
     if learningType != 'ada' and learningType != 'dt':
-        print('usage: train(<exampleFile>, <hypothesisFile>, <"ada"|"dt"> [, <maxDepth>])')
+        printUsage()
         return
 
     isAda = learningType == 'ada'
     if isAda and maxDepth == -1:
         maxDepth = defaultAdaboostK()  # maxDepth handling for adaboost
 
+    strSet = readLangFile(exampleFile)
+    dataSet = attribute(strSet, attrDef)
+
+    hypo = None
+    if isAda:
+        hypo = adaTree(dataSet, 'en', 'nl', attrSet, attrRanges, maxDepth)
+    else:
+        hypo = dTree()
+        hypo.teach(dataSet, attrSet, attrRanges, ['en', 'nl'])
+
+    hypo.beautify()
+
+
+def printUsage():
+    print('Usage: ' + sys.argv[0] + 'train <exampleFile> <hypothesisFile> <"ada"|"dt"> [maxDepth]')
+    print('       -or-')
+    print('       ' + sys.argv[0] + 'predict <hypothesisFile> <dataFile>')
+
 
 def predict(hypothesisFile, dataFile):
     pass
 
+
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or (sys.argv[1] != 'train' and sys.argv[1] != 'predict') or \
+                (sys.argv[1] == 'train' and len(sys.argv) < 5) or \
+            (sys.argv[1] == 'predict' and len(sys.argv < 4)):
+        printUsage()
         exit(1)
+
+    if sys.argv[1] == 'train':
+        if len(sys.argv) == 5:
+            train(sys.argv[2], sys.argv[3], sys.argv[4])
+        else:
+            train(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
+    else:
+        predict(sys.argv[2], sys.argv[3])

@@ -33,11 +33,16 @@ def readExampleData(filePath):
 
     return dataSet, attrs, attrRanges, categories
 
-def readLangFile(filepath):
-    fp = open(filepath, 'r')
+
+def readLangFile(filePath):
+    fp = open(filePath, 'r')
 
     data = list()
     for line in fp.readlines():
-        data.append(line.split('|'))
-        data[0] = data[0].strip()
-        data[1] = data[1].strip()
+        datum = line.split('|')
+        datum[0] = datum[0].strip()
+        datum[1] = datum[1].strip()
+        data.append(datum)
+
+    fp.close()
+    return data

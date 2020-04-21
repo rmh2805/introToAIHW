@@ -9,10 +9,17 @@ def main():
 
     ada = adaTree(dataSet, categories[0], categories[1], attrs, attrRanges, 3)
 
+    missedAny = False
     for i in range(0, len(dataSet)):
         testCat, testDict = dataSet[i]
         if testCat != ada.eval(testDict):
             print('Missed ' + str(i))
+            missedAny = True
+
+    if not missedAny:
+        print('No examples were missed')
+
+    print(attrs)
 
     return
 
