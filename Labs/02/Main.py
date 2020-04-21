@@ -25,10 +25,9 @@ for tpl in attrDef:
     attrSet.add(key)
 
 
-
 # Sets the default number of hypotheses for adaboost
 def defaultAdaboostK():
-    return 5
+    return 30
 
 
 # This function will train either a decision tree (learningType = "dt") or adaboost on decision stumps
@@ -60,7 +59,9 @@ def train(exampleFile, hypothesisFile, learningType, maxDepth=-1):
         hypo = dTree()
         hypo.teach(dataSet, attrSet, attrRanges, ['en', 'nl'])
 
-    hypo.beautify()
+    oFile = open(hypothesisFile, 'wb')
+    pickle.dump(hypo, oFile)
+    oFile.close()
 
 
 def printUsage():
@@ -75,12 +76,11 @@ def predict(hypothesisFile, dataFile):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2 or (sys.argv[1] != 'train' and sys.argv[1] != 'predict') or \
-                (sys.argv[1] == 'train' and len(sys.argv) < 5) or \
+            (sys.argv[1] == 'train' and len(sys.argv) < 5) or \
             (sys.argv[1] == 'predict' and len(sys.argv < 4)):
         printUsage()
         exit(1)
 
-    if sys.argv[1] == 'train':
         if len(sys.argv) == 5:
             train(sys.argv[2], sys.argv[3], sys.argv[4])
         else:

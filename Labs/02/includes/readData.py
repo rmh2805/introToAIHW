@@ -35,7 +35,7 @@ def readExampleData(filePath):
 
 
 def readLangFile(filePath):
-    fp = open(filePath, 'r')
+    fp = open(filePath, 'r', encoding='utf8')
 
     data = list()
     for line in fp.readlines():
