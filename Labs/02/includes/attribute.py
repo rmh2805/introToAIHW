@@ -7,7 +7,7 @@ def hasSubstring(text, substring):
 
 
 def attrSample(sample, attrDef):
-    return attribute([sample], attrDef)
+    return attribute([sample], attrDef)[0]
 
 
 def attribute(data, attrDef):

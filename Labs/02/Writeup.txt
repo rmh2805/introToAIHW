@@ -1,0 +1,90 @@
+================================<Feature Choice>================================
+    My chosen features are:
+        Presence of substring 'aa'
+        Presence of word 'the'
+        Presence of word 'een'
+        Presence of word 'de'
+        Presence of substring 'ee'
+        Presence of word 'het'
+        Presence of word 'op'
+        Presence of word 'of'
+        Presence of word 'and'
+        Presence of substring 'v'
+
+    I started off trying to find features as substrings just by looking at
+examples of Dutch text and seeing what stood out as an english reader. The main
+thing to come from that were the checks for aa and ee. In order to evaluate
+potential factors, I bodged together a simple python script to pull down random
+wikipedia pages and run queries on them.
+
+    I would eventually extend it to generate (low quality) training files (see
+Data/TrainingFiles/20.data, 200.data, and kiloset.dat), to check for the
+presence of words (rather than substrings), and to evaluate information gain by
+splitting on the presence of the chosen attribute. Most of my success came from
+evaluating the most common words in English and Dutch (see the rest of the
+chosen features except presence of substring 'v', which I threw in randomly).
+
+====================<Description of Decision Tree Learning>=====================
+
+    (Assuming that a description of the algorithm is what was meant by 'a
+description of the decision tree learning') The decision tree algorithm
+generates a tree by splitting its training set on the provided attributes in
+order to maximize information gain at each split.
+
+    I wrote my first implementation of the decision tree algorithm while
+watching the lecture video describing it, testing along the way to ensure that
+the partial results of my implementation made a reasonable approximation of the
+results on the slides. I later rewrote the algorithm as a single object rather
+than a tree of linked nodes in order to have a cleaner starting point for the
+weighted decision tree than my more slipshod earlier attempt (the first (blind)
+implementation didn't cordon off the node counts from the tree generation which
+would have required a more substantial rewrite for weighted implementation, so I
+decided to put the rewriting effort into the base class (1 better base class as
+opposed to 2 spaghetti classes).
+
+    With my chosen features and computer I was able to quickly run the decision
+tree without a depth limit (I only exposed it because it was already there, so I
+had no reason not to) and primarily did my factor evaluation outside of learning
+algorithms themselves (resulting in a good set of factors from the start), so I
+just went with a simple unlimited implementation for my parameters.
+
+=============================<Adaboost Description>=============================
+
+    (Making the same assumption as with the decision tree) The adaboost meta-
+algorithm is a binary-choice learning algorithm that creates a fixed-size
+ensemble of other learned hypotheses (in this implementation, weighted decision
+tree stumps) with each successive hypothesis prioritizing the training samples
+the previous hypotheses missed. At evaluation, the ensemble is polled and each
+of member's categorization is linearly combined with a factor in inverse
+proportion to the weight of its missed samples, and the result is determined by
+the closest category to the result.
+
+    To start off with evaluating adaboost performance, I used an ensemble of 30
+stumps. Due to the poor quality of my generated evaluation samples (no checks to
+limit or prevent proper nouns, direct quotes from foreign languages, and mostly
+entirely numeric strings taken) I ended up raising that to 100 without seeing
+improvement in adaboost's performance. After realizing the poor quality of my
+evaluation set, I lowered the size of the ensemble to the point where its
+accuracy decreased (8), and also tested higher ensemble sizes (by hundreds up to
+500, where learning was significantly delayed on my machine) with no improvement
+(i.e. accuracy(k=9) == accuracy(k=500)).
+
+=====================================<Misc>=====================================
+    The spreadsheet I used to evaluate factors can be found here:
+        https://docs.google.com/spreadsheets/d/1Y2M1WQByHvlvzfJlPzHbXeUoGdQvx0lo8aGHFiSy1gg/edit?usp=sharing
+
+    The python script I used to analyze factors and generate my own testing
+files can be found here:
+        https://github.com/rmh2805/WikiQueries
+
+    The best hypothesis that I generated is here:
+        Data/HypothesisFiles/best.hypo
+
+    The files I used in training the partial implementations of adaboost and
+decision trees can be found under Data/ExampleFiles. The unlabeled files I used
+to test my generated hypotheses can be found under Data/TestFiles. The files I
+used to train and evaluate my hypotheses can be found under Data/TrainingFiles.
+
+    When trained on my kiloset.dat file, the unlimited decision tree tended to
+slightly outperform the adaboost hypothesis up to an ensemble size of at least
+500.

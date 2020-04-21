@@ -8,14 +8,14 @@ from includes.attribute import attrSample, attribute
 # Define the set of attributes to scan on
 attrDef = [('s aa', 'substring', 'aa'),
            ('w the', 'word', 'the'),
+           ('w een', 'word', 'een'),
            ('w de', 'word', 'de'),
            ('s ee', 'substring', 'ee'),
            ('w het', 'word', 'het'),
-           ('w and', 'word', 'and'),
+           ('w op', 'word', 'op'),
            ('w of', 'word', 'of'),
-           ('s v', 'substring', 'v'),
-           ('w door', 'word', 'w'),
-           ('s oo', 'substring', 'oo')]
+           ('w and', 'word', 'and'),
+           ('s v', 'substring', 'v')]
 
 attrSet = set()
 attrRanges = dict()
@@ -27,7 +27,7 @@ for tpl in attrDef:
 
 # Sets the default number of hypotheses for adaboost
 def defaultAdaboostK():
-    return 30
+    return 10
 
 
 # This function will train either a decision tree (learningType = "dt") or adaboost on decision stumps
@@ -71,19 +71,53 @@ def printUsage():
 
 
 def predict(hypothesisFile, dataFile):
-    pass
+    hFile = open(hypothesisFile, 'rb')
+    hypo = pickle.load(hFile)
+    hFile.close()
+
+    dFile = open(dataFile, 'r', encoding='utf8')
+    lines = dFile.readlines()
+    dFile.close()
+
+    for line in lines:
+        line = line.strip()
+        attrs = attrSample(('', line), attrDef)[1]
+        cat = hypo.eval(attrs)
+        print(cat)
+
+
+def evalMe(hypothesisFile, testingFile):
+    hFile = open(hypothesisFile, 'rb')
+    hypo = pickle.load(hFile)
+    hFile.close()
+
+    samples = readLangFile(testingFile)
+
+    missedCount = 0
+    for sample in samples:
+        trueCat, attrs = attrSample(sample, attrDef)
+        cat = hypo.eval(attrs)
+        if trueCat != cat:
+            print('Miscategorized "' + sample[1] + '" as ' + str(cat))
+            missedCount += 1
+
+    print('Missed ' + str(missedCount) + ' in total (' + str(float(missedCount) / len(samples) * 100) + '%)')
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2 or (sys.argv[1] != 'train' and sys.argv[1] != 'predict') or \
+    if len(sys.argv) < 2 or (sys.argv[1] != 'train' and sys.argv[1] != 'predict' and sys.argv[1] != 'eval') or \
             (sys.argv[1] == 'train' and len(sys.argv) < 5) or \
-            (sys.argv[1] == 'predict' and len(sys.argv < 4)):
+            (sys.argv[1] == 'predict' and len(sys.argv) < 4) or \
+            (sys.argv[1] == 'eval' and len(sys.argv) < 4):
         printUsage()
         exit(1)
 
+    if sys.argv[1] == 'train':
         if len(sys.argv) == 5:
             train(sys.argv[2], sys.argv[3], sys.argv[4])
         else:
             train(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
+    elif sys.argv[1] == 'eval':
+        evalMe(sys.argv[2], sys.argv[3])
     else:
         predict(sys.argv[2], sys.argv[3])

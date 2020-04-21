@@ -3,7 +3,7 @@ from includes.readData import readExampleData
 
 
 def main():
-    dataSet, attrs, attrRanges, categories = readExampleData('Data/andExample.data')
+    dataSet, attrs, attrRanges, categories = readExampleData('ExampleFiles/andExample.data')
     wTree = weightedDTree()
 
     weight = float(1) / (len(dataSet))

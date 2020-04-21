@@ -111,7 +111,7 @@ def parsePath(pathFile):
     return data
 
 
-# =================================================<Get Pacing Data>================================================== #
+# =================================================<Get Pacing ExampleFiles>================================================== #
 # An implementation of Tobler's hiking function for pace on a slope
 def getVertPace(x0, y0, xF, yF, heightArray):
     hDist = getHDist(x0, y0, xF, yF)

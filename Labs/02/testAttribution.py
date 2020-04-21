@@ -19,7 +19,7 @@ for tpl in attrDef:
 
 
 def main():
-    data = readLangFile('Data/20.data')
+    data = readLangFile('ExampleFiles/20.data')
     dataSet = attribute(data, attrDef)
 
     for i in range(0, len(data)):
