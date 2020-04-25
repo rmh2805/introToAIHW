@@ -65,9 +65,11 @@ def train(exampleFile, hypothesisFile, learningType, maxDepth=-1):
 
 
 def printUsage():
-    print('Usage: ' + sys.argv[0] + 'train <exampleFile> <hypothesisFile> <"ada"|"dt"> [maxDepth]')
+    print('Usage: ' + sys.argv[0] + ' train <exampleFile> <hypothesisFile> <"ada"|"dt"> [maxDepth]')
     print('       -or-')
-    print('       ' + sys.argv[0] + 'predict <hypothesisFile> <dataFile>')
+    print('       ' + sys.argv[0] + ' predict <hypothesisFile> <dataFile>')
+    print('       -or-')
+    print('       ' + sys.argv[0] + ' eval <hypothesisFile> <trainingFile>')
 
 
 def predict(hypothesisFile, dataFile):
